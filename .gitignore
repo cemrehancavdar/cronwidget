@@ -9,3 +9,10 @@ build/
 .rodney/
 *.egg
 .DS_Store
+__marimo__/
+examples/checks.db
+examples/checks_config.json
+examples/huey.db
+examples/.worker.pid
+examples/pipelines.db
+examples/pipeline_config.json

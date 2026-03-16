@@ -54,6 +54,15 @@ wheels = [
 ]
 
 [[package]]
+name = "chime"
+version = "0.7.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/bc/918e3769666d918904b70f1fbdabfc3fbc3fbe97240a2a610b98b9b3fe0e/chime-0.7.0.tar.gz", hash = "sha256:ba4af8934ec8bd9a89a340b4433b2e500097b979823386432be7128e0b201f0d", size = 3923153, upload-time = "2023-02-20T10:05:40.199Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/e4/9d2a6bbfcb11dff0bda0cd886fbf20f669260610e413c1be1537dbb4a5c1/chime-0.7.0-py3-none-any.whl", hash = "sha256:9626f8151cb008b1e0ffb7de6d1834b7013ba5fc4c4e3c9ba6e29dc9bf5feac6", size = 3907551, upload-time = "2023-02-20T10:05:16.484Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -105,8 +114,10 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "chime" },
     { name = "croniter" },
     { name = "httpx" },
+    { name = "huey" },
     { name = "marimo" },
     { name = "pyright" },
     { name = "pytest" },
@@ -118,8 +129,10 @@ requires-dist = [{ name = "anywidget", specifier = ">=0.9.2" }]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "chime", specifier = ">=0.7.0" },
     { name = "croniter", specifier = ">=6.2.2" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "huey", specifier = ">=2.6.0" },
     { name = "marimo", specifier = ">=0.18.0" },
     { name = "pyright", specifier = ">=1.1.0" },
     { name = "pytest", specifier = ">=8.0" },
@@ -200,6 +213,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
+]
+
+[[package]]
+name = "huey"
+version = "2.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/29/3428d52eb8e85025e264a291641a9f9d6407cc1e51d1b630f6ac5815999a/huey-2.6.0.tar.gz", hash = "sha256:8d11f8688999d65266af1425b831f6e3773e99415027177b8734b0ffd5e251f6", size = 221068, upload-time = "2026-01-06T03:01:02.055Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/34/fae9ac8f1c3a552fd3f7ff652b94c78d219dedc5fce0c0a4232457760a00/huey-2.6.0-py3-none-any.whl", hash = "sha256:1b9df9d370b49c6d5721ba8a01ac9a787cf86b3bdc584e4679de27b920395c3f", size = 76951, upload-time = "2026-01-06T03:01:00.808Z" },
 ]
 
 [[package]]
