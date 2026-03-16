@@ -1,11 +1,11 @@
 [project]
 name = "cronwidget"
 version = "0.1.0"
-description = "Creative anywidgets for marimo/Jupyter: CronBuilder and VirtualJoystick"
+description = "Visual cron expression editor widget for marimo/Jupyter"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "Cemre Han Cavdar" }]
-keywords = ["anywidget", "marimo", "jupyter", "cron", "joystick", "widget"]
+keywords = ["anywidget", "marimo", "jupyter", "cron", "widget"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

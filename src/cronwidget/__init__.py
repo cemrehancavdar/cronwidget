@@ -1,9 +1,7 @@
-"""Creative anywidgets: CronBuilder and VirtualJoystick."""
+"""CronBuilder — visual cron expression editor widget."""
 
 from .cron_builder import CronBuilder
-from .virtual_joystick import VirtualJoystick
 
 __all__ = [
     "CronBuilder",
-    "VirtualJoystick",
 ]
