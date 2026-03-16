@@ -12,7 +12,7 @@ def _():
 # Data Pipeline Scheduler
 
 Configure fetch schedules for each data source using the cron builders below.
-Hit **Run Now** to test a pipeline, or copy the cron expression into your scheduler.
+Pipelines run automatically on their cron schedule. Toggle **Enable** to start/stop each one.
 Results are stored in a local SQLite database.
 """)
     return (mo,)
@@ -21,13 +21,18 @@ Results are stored in a local SQLite database.
 @app.cell
 def _():
     import json
+    import logging
     import sqlite3
+    import threading
     from datetime import datetime
     from pathlib import Path
 
     import httpx
+    from croniter import croniter
 
     DB_PATH = Path("pipelines.db")
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
     def init_db() -> None:
         con = sqlite3.connect(str(DB_PATH))
@@ -46,7 +51,7 @@ def _():
         con.close()
 
     init_db()
-    return DB_PATH, datetime, httpx, json, sqlite3
+    return DB_PATH, croniter, datetime, httpx, json, logging, sqlite3, threading
 
 
 @app.cell
@@ -107,7 +112,73 @@ def _(DB_PATH, datetime, httpx, json, sqlite3):
                 quotes.append({"quote": data[0].get("q", ""), "author": data[0].get("a", "")})
         return quotes
 
-    return save_run, fetch_hn_top_stories, fetch_github_trending, fetch_quotes
+    return fetch_github_trending, fetch_hn_top_stories, fetch_quotes, save_run
+
+
+@app.cell
+def _(
+    croniter,
+    datetime,
+    logging,
+    threading,
+    save_run,
+    fetch_hn_top_stories,
+    fetch_github_trending,
+    fetch_quotes,
+):
+    _logger = logging.getLogger("scheduler")
+
+    _PIPELINES = {
+        "hacker_news": fetch_hn_top_stories,
+        "github_trending": fetch_github_trending,
+        "quotes": fetch_quotes,
+    }
+
+    _scheduler_state: dict[str, dict] = {}
+
+    def _run_loop(name: str, state: dict) -> None:
+        stop_event = state["stop_event"]
+        last_fire_minute = None
+
+        while not stop_event.is_set():
+            now = datetime.now()
+            current_minute = now.replace(second=0, microsecond=0)
+
+            if croniter.match(state["expression"], now) and current_minute != last_fire_minute:
+                last_fire_minute = current_minute
+                _logger.info("FIRING pipeline=%s expression=%s", name, state["expression"])
+                try:
+                    records = _PIPELINES[name]()
+                    save_run(name, records)
+                    _logger.info("SUCCESS pipeline=%s records=%d", name, len(records))
+                except Exception as e:
+                    _logger.error("FAILED pipeline=%s error=%s", name, e)
+
+            stop_event.wait(timeout=30)
+
+    def start_pipeline(name: str, expression: str) -> None:
+        stop_pipeline(name)
+        stop_event = threading.Event()
+        state = {"expression": expression, "stop_event": stop_event, "thread": None}
+        _scheduler_state[name] = state
+        t = threading.Thread(target=_run_loop, args=(name, state), daemon=True)
+        state["thread"] = t
+        t.start()
+        _logger.info("STARTED pipeline=%s expression=%s", name, expression)
+
+    def stop_pipeline(name: str) -> None:
+        if name in _scheduler_state:
+            old = _scheduler_state.pop(name)
+            old["stop_event"].set()
+            if old["thread"] and old["thread"].is_alive():
+                old["thread"].join(timeout=2)
+            _logger.info("STOPPED pipeline=%s", name)
+
+    def update_expression(name: str, expression: str) -> None:
+        if name in _scheduler_state:
+            _scheduler_state[name]["expression"] = expression
+
+    return start_pipeline, stop_pipeline, update_expression
 
 
 @app.cell
@@ -119,15 +190,28 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md("## Hacker News Top Stories")
+    mo.md("---\n## Hacker News Top Stories")
     return
 
 
 @app.cell
 def _(CronBuilder, mo):
     hn_cron = mo.ui.anywidget(CronBuilder(expression="0 */6 * * *"))
-    mo.hstack([mo.md("**Schedule:**"), hn_cron], gap=1)
-    return (hn_cron,)
+    hn_enabled = mo.ui.switch(label="Enable", value=False)
+    mo.hstack([mo.md("**Schedule:**"), hn_cron, hn_enabled], gap=1)
+    return hn_cron, hn_enabled
+
+
+@app.cell
+def _(hn_cron, hn_enabled, start_pipeline, stop_pipeline, update_expression, mo):
+    if hn_enabled.value:
+        start_pipeline("hacker_news", hn_cron.expression)
+        mo.md(f"Pipeline **hacker_news** running on `{hn_cron.expression}`")
+    else:
+        stop_pipeline("hacker_news")
+        mo.md("Pipeline **hacker_news** stopped")
+    update_expression("hacker_news", hn_cron.expression)
+    return
 
 
 @app.cell
@@ -138,30 +222,43 @@ def _(mo):
 
 
 @app.cell
-def _(hn_btn, hn_cron, fetch_hn_top_stories, save_run, mo):
+def _(fetch_hn_top_stories, hn_btn, mo, save_run):
     _result = None
     if hn_btn.value:
         _stories = fetch_hn_top_stories(limit=10)
         _count = save_run("hacker_news", _stories)
         _result = mo.md(
-            f"Fetched **{_count}** stories. Schedule: `{hn_cron.expression}`\n\n"
+            f"Fetched **{_count}** stories\n\n"
             + "\n".join(f"- **{s['title']}** (score: {s['score']})" for s in _stories[:5])
         )
-    _result if _result else mo.md("_Press Run Now to test this pipeline_")
+    _result if _result else mo.md("_Press Run Now to test manually_")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("## GitHub Trending Repos")
+    mo.md("---\n## GitHub Trending Repos")
     return
 
 
 @app.cell
 def _(CronBuilder, mo):
     gh_cron = mo.ui.anywidget(CronBuilder(expression="0 9 * * 1-5"))
-    mo.hstack([mo.md("**Schedule:**"), gh_cron], gap=1)
-    return (gh_cron,)
+    gh_enabled = mo.ui.switch(label="Enable", value=False)
+    mo.hstack([mo.md("**Schedule:**"), gh_cron, gh_enabled], gap=1)
+    return gh_cron, gh_enabled
+
+
+@app.cell
+def _(gh_cron, gh_enabled, start_pipeline, stop_pipeline, update_expression, mo):
+    if gh_enabled.value:
+        start_pipeline("github_trending", gh_cron.expression)
+        mo.md(f"Pipeline **github_trending** running on `{gh_cron.expression}`")
+    else:
+        stop_pipeline("github_trending")
+        mo.md("Pipeline **github_trending** stopped")
+    update_expression("github_trending", gh_cron.expression)
+    return
 
 
 @app.cell
@@ -172,32 +269,45 @@ def _(mo):
 
 
 @app.cell
-def _(gh_btn, gh_cron, fetch_github_trending, save_run, mo):
+def _(fetch_github_trending, gh_btn, mo, save_run):
     _result = None
     if gh_btn.value:
         _repos = fetch_github_trending()
         _count = save_run("github_trending", _repos)
         _result = mo.md(
-            f"Fetched **{_count}** repos. Schedule: `{gh_cron.expression}`\n\n"
+            f"Fetched **{_count}** repos\n\n"
             + "\n".join(
                 f"- **{r['name']}** ({r['stars']} stars) -- {r['description']}" for r in _repos[:5]
             )
         )
-    _result if _result else mo.md("_Press Run Now to test this pipeline_")
+    _result if _result else mo.md("_Press Run Now to test manually_")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("## Random Quotes")
+    mo.md("---\n## Random Quotes")
     return
 
 
 @app.cell
 def _(CronBuilder, mo):
     qt_cron = mo.ui.anywidget(CronBuilder(expression="*/30 * * * *"))
-    mo.hstack([mo.md("**Schedule:**"), qt_cron], gap=1)
-    return (qt_cron,)
+    qt_enabled = mo.ui.switch(label="Enable", value=False)
+    mo.hstack([mo.md("**Schedule:**"), qt_cron, qt_enabled], gap=1)
+    return qt_cron, qt_enabled
+
+
+@app.cell
+def _(qt_cron, qt_enabled, start_pipeline, stop_pipeline, update_expression, mo):
+    if qt_enabled.value:
+        start_pipeline("quotes", qt_cron.expression)
+        mo.md(f"Pipeline **quotes** running on `{qt_cron.expression}`")
+    else:
+        stop_pipeline("quotes")
+        mo.md("Pipeline **quotes** stopped")
+    update_expression("quotes", qt_cron.expression)
+    return
 
 
 @app.cell
@@ -208,16 +318,16 @@ def _(mo):
 
 
 @app.cell
-def _(qt_btn, qt_cron, fetch_quotes, save_run, mo):
+def _(fetch_quotes, mo, qt_btn, save_run):
     _result = None
     if qt_btn.value:
         _quotes = fetch_quotes(count=5)
         _count = save_run("quotes", _quotes)
         _result = mo.md(
-            f"Fetched **{_count}** quotes. Schedule: `{qt_cron.expression}`\n\n"
+            f"Fetched **{_count}** quotes\n\n"
             + "\n".join(f'- _"{q["quote"]}"_ -- {q["author"]}' for q in _quotes)
         )
-    _result if _result else mo.md("_Press Run Now to test this pipeline_")
+    _result if _result else mo.md("_Press Run Now to test manually_")
     return
 
 
@@ -228,7 +338,7 @@ def _(mo):
 
 
 @app.cell
-def _(DB_PATH, sqlite3, mo):
+def _(DB_PATH, mo, sqlite3):
     _con = sqlite3.connect(str(DB_PATH))
     _rows = _con.execute(
         "SELECT pipeline, fetched_at, record_count FROM pipeline_runs ORDER BY id DESC LIMIT 20"
@@ -240,7 +350,7 @@ def _(DB_PATH, sqlite3, mo):
         _table_data = [{"Pipeline": r[0], "Fetched At": r[1], "Records": r[2]} for r in _rows]
         _output = mo.ui.table(_table_data)
     else:
-        _output = mo.md("_No runs yet. Hit a Run Now button above to get started._")
+        _output = mo.md("_No runs yet. Hit a Run Now button or enable a pipeline._")
     _output
     return
 
