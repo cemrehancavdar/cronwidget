@@ -1,0 +1,48 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.20.4",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "030d9771233bf1f2632fa445a62f09b2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"cronbuilder-widget-demo\">CronBuilder Widget Demo</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "af40ecd0be9d4bc5681f5e66dafb792b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='MJUe-0' random-id='082c5a15-fcb0-5a12-7788-4afb2de59fe3'><marimo-anywidget data-initial-value='{&quot;model_id&quot;:&quot;fef9e215cdb14afa9edd7397cd18f577&quot;}' data-label='null' data-js-url='&quot;./@file/9968-11751944-l0JCciO8.js&quot;' data-js-hash='&quot;ede94aaf58f538a8d0c9859aa0f314e4&quot;'></marimo-anywidget></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "736984417d2d3734cf26c082989e2f46",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Current expression:</strong> <code>*/5 * * * *</code></span>\n<span class=\"paragraph\"><strong>Description:</strong> At every 5 minute(s) past every hour, on every day of month of every month, every day of week</span>\n<span class=\"paragraph\"><strong>Fields:</strong> {'minute': '<em>/5', 'hour': '</em>', 'day_of_month': '<em>', 'month': '</em>', 'day_of_week': '*'}</span></span>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

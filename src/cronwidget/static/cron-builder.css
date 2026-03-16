@@ -1,0 +1,150 @@
+/* CronBuilder — Tangle-style interactive cron */
+
+.cron-builder {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color-scheme: light dark;
+  display: inline-block;
+
+  --cb-text: #111827;
+  --cb-text-muted: #6b7280;
+  --cb-text-dim: #9ca3af;
+  --cb-accent: #0052cc;
+  --cb-accent-hover: #003d99;
+  --cb-active-bg: rgba(0, 82, 204, 0.08);
+  --cb-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  color: var(--cb-text);
+}
+
+.dark .cron-builder,
+.dark-theme .cron-builder,
+[data-theme="dark"] .cron-builder {
+  --cb-text: #e5e7eb;
+  --cb-text-muted: #9ca3af;
+  --cb-text-dim: #6b7280;
+  --cb-accent: #4d9fff;
+  --cb-accent-hover: #7db8ff;
+  --cb-active-bg: rgba(77, 159, 255, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cron-builder {
+    --cb-text: #e5e7eb;
+    --cb-text-muted: #9ca3af;
+    --cb-text-dim: #6b7280;
+    --cb-accent: #4d9fff;
+    --cb-accent-hover: #7db8ff;
+    --cb-active-bg: rgba(77, 159, 255, 0.1);
+  }
+}
+
+/* ── Expression row ── */
+.cb-expr-row {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* ── Tangle column (value + label) ── */
+.cb-tangle-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ── Clickable container — full group hover ── */
+.cb-tangle-container {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.cb-tangle-container:hover {
+  background: var(--cb-active-bg);
+}
+
+/* ── Static text (e.g. "*/" or "-") ── */
+.cb-static {
+  font-family: var(--cb-mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--cb-text-dim);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Draggable tangle number ── */
+.cb-tangle {
+  font-family: var(--cb-mono);
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  color: var(--cb-accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  cursor: ew-resize;
+  padding: 0 1px;
+  border-radius: 3px;
+  transition: color 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  min-width: 18px;
+  text-align: center;
+  outline: none;
+}
+
+.cb-tangle:hover {
+  color: var(--cb-accent-hover);
+}
+
+.cb-tangle.is-active {
+  text-decoration-style: solid;
+}
+
+.cb-tangle:focus-visible {
+  box-shadow: 0 0 0 2px var(--cb-accent);
+}
+
+/* ── Mode description ── */
+.cb-tangle-mode {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--cb-text-muted);
+  white-space: nowrap;
+}
+
+/* ── Unit / field name ── */
+.cb-tangle-unit {
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cb-text-dim);
+  white-space: nowrap;
+}
+
+/* ── Description ── */
+.cb-desc {
+  font-size: 13px;
+  color: var(--cb-text-muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* ── Next runs ── */
+.cb-next {
+  font-family: var(--cb-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--cb-text-dim);
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
